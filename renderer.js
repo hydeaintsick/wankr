@@ -38,7 +38,7 @@ let mouseInterval = null;
 // Data file path
 const dataPath = path.join(__dirname, "timer-data.json");
 
-// Activity simulation functions
+// Network activity simulation functions
 function startActivitySimulation() {
   console.log("startActivitySimulation called");
   if (mouseInterval) {
@@ -47,12 +47,12 @@ function startActivitySimulation() {
 
   mouseInterval = setInterval(async () => {
     if (isRunning) {
-      console.log("Simulating activity...");
+      console.log("Simulating network activity...");
       try {
         await ipcRenderer.invoke("simulate-activity");
-        console.log("Activity simulated successfully");
+        console.log("Network activity simulated successfully");
       } catch (error) {
-        console.error("Error simulating activity:", error);
+        console.error("Error simulating network activity:", error);
       }
     }
   }, 30000); // Every 30 seconds
@@ -102,13 +102,13 @@ function startTimer() {
       updateTimerDisplay();
     }, 1000);
 
-    // Start activity simulation for fake activity
-    console.log("Starting activity simulation...");
+    // Start network activity simulation
+    console.log("Starting network activity simulation...");
     try {
       startActivitySimulation();
-      console.log("Activity simulation started successfully");
+      console.log("Network activity simulation started successfully");
     } catch (error) {
-      console.error("Error starting activity simulation:", error);
+      console.error("Error starting network activity simulation:", error);
     }
   } else {
     console.log("Timer already running");
