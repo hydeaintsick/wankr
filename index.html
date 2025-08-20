@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Electron Transparent Blur</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Title bar -->
+      <div class="title-bar">
+        <div class="title-bar-left">
+          <span class="app-title">Transparent Blur App</span>
+        </div>
+        <div class="title-bar-right">
+          <button
+            class="control-btn"
+            id="always-on-top-btn"
+            title="Always on Top"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M12 2L2 7v10c0 5.55 3.84 9.74 9 11 5.16-1.26 9-5.45 9-11V7l-10-5z"
+              />
+            </svg>
+          </button>
+          <button
+            class="control-btn minimize-btn"
+            id="minimize-btn"
+            title="Minimize"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M6 19h12v2H6z" />
+            </svg>
+          </button>
+          <button class="control-btn close-btn" id="close-btn" title="Close">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Main content -->
+      <div class="main-content">
+        <div class="content-card">
+          <h2>Welcome to Transparent Blur</h2>
+          <p>
+            This is a boilerplate Electron app with transparent blur effects.
+          </p>
+
+          <div class="feature-list">
+            <div class="feature-item">
+              <span class="feature-icon">✨</span>
+              <span>Transparent background</span>
+            </div>
+            <div class="feature-item">
+              <span class="feature-icon">🌫️</span>
+              <span>Blur effects</span>
+            </div>
+            <div class="feature-item">
+              <span class="feature-icon">🎨</span>
+              <span>Modern UI</span>
+            </div>
+            <div class="feature-item">
+              <span class="feature-icon">⚡</span>
+              <span>Frameless window</span>
+            </div>
+          </div>
+
+          <div class="controls-section">
+            <button class="action-btn" id="toggle-blur-btn">
+              Toggle Blur Effect
+            </button>
+            <button class="action-btn" id="change-opacity-btn">
+              Change Opacity
+            </button>
+          </div>
+
+          <div class="status-info">
+            <p>Window State: <span id="window-state">Normal</span></p>
+            <p>Always on Top: <span id="always-on-top-status">Off</span></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="renderer.js"></script>
+  </body>
+</html>
