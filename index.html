@@ -14,7 +14,7 @@
       <!-- Title bar -->
       <div class="title-bar">
         <div class="title-bar-left">
-          <span class="app-title">Transparent Blur App</span>
+          <span class="app-title">Fkr - Everyday is a holiday</span>
         </div>
         <div class="title-bar-right">
           <button
@@ -49,46 +49,27 @@
 
       <!-- Main content -->
       <div class="main-content">
-        <div class="content-card">
-          <h2>Welcome to Transparent Blur</h2>
-          <p>
-            This is a boilerplate Electron app with transparent blur effects.
-          </p>
-
-          <div class="feature-list">
-            <div class="feature-item">
-              <span class="feature-icon">✨</span>
-              <span>Transparent background</span>
-            </div>
-            <div class="feature-item">
-              <span class="feature-icon">🌫️</span>
-              <span>Blur effects</span>
-            </div>
-            <div class="feature-item">
-              <span class="feature-icon">🎨</span>
-              <span>Modern UI</span>
-            </div>
-            <div class="feature-item">
-              <span class="feature-icon">⚡</span>
-              <span>Frameless window</span>
-            </div>
-          </div>
-
-          <div class="controls-section">
-            <button class="action-btn" id="toggle-blur-btn">
-              Toggle Blur Effect
-            </button>
-            <button class="action-btn" id="change-opacity-btn">
-              Change Opacity
-            </button>
-            <button class="action-btn" id="toggle-transparent-zone-btn">
-              Toggle Transparent Zone
+        <div class="compact-timer">
+          <div class="timer-row">
+            <div class="timer-display" id="current-timer">00:00:00</div>
+            <button class="timer-btn" id="start-stop-btn">
+              <span class="btn-icon">▶️</span>
             </button>
           </div>
 
-          <div class="status-info">
-            <p>Window State: <span id="window-state">Normal</span></p>
-            <p>Always on Top: <span id="always-on-top-status">Off</span></p>
+          <div class="stats-row">
+            <div class="stat-compact">
+              <span class="stat-value" id="today-sessions">0</span>
+              <span class="stat-label">sessions</span>
+            </div>
+            <div class="stat-compact">
+              <span class="stat-value" id="today-time">00:00</span>
+              <span class="stat-label">today</span>
+            </div>
+            <div class="stat-compact">
+              <span class="stat-value" id="total-time-short">0d 0h</span>
+              <span class="stat-label">total</span>
+            </div>
           </div>
         </div>
       </div>

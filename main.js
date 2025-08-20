@@ -10,13 +10,13 @@ function createWindow() {
 
   // Create the browser window with transparent settings
   mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
-    x: (width - 800) / 2,
-    y: (height - 600) / 2,
+    width: 400,
+    height: 220,
+    x: (width - 400) / 2,
+    y: (height - 220) / 2,
     transparent: true,
     frame: false,
-    resizable: true,
+    resizable: false,
     minimizable: true,
     maximizable: false,
     alwaysOnTop: false,

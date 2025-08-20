@@ -1,4 +1,6 @@
 const { ipcRenderer } = require("electron");
+const fs = require("fs");
+const path = require("path");
 
 // DOM elements
 const minimizeBtn = document.getElementById("minimize-btn");
@@ -9,8 +11,11 @@ const changeOpacityBtn = document.getElementById("change-opacity-btn");
 const toggleTransparentZoneBtn = document.getElementById(
   "toggle-transparent-zone-btn"
 );
-const windowStateSpan = document.getElementById("window-state");
-const alwaysOnTopStatusSpan = document.getElementById("always-on-top-status");
+const startStopBtn = document.getElementById("start-stop-btn");
+const currentTimerDisplay = document.getElementById("current-timer");
+const todaySessionsDisplay = document.getElementById("today-sessions");
+const todayTimeDisplay = document.getElementById("today-time");
+const totalTimeShortDisplay = document.getElementById("total-time-short");
 const appContainer = document.querySelector(".app-container");
 const transparentZone = document.querySelector(".transparent-zone");
 
@@ -19,6 +24,18 @@ let blurLevel = 0; // 0: normal, 1: light, 2: heavy, 3: off
 let opacityLevel = 0; // 0: normal, 1: 50%, 2: 75%, 3: 100%
 let isAlwaysOnTop = false;
 let transparentZoneVisible = true;
+
+// Timer state
+let isRunning = false;
+let startTime = null;
+let currentSessionTime = 0;
+let todaySessions = 0;
+let todayTime = 0;
+let totalTime = 0;
+let timerInterval = null;
+
+// Data file path
+const dataPath = path.join(__dirname, "timer-data.json");
 
 // Initialize the app
 async function initializeApp() {
@@ -29,8 +46,132 @@ async function initializeApp() {
       updateAlwaysOnTopStatus();
       updateWindowState(windowState);
     }
+
+    // Load saved data
+    loadTimerData();
+
+    // Update displays
+    updateTimerDisplay();
+    updateStatsDisplay();
+    updateTotalTimeShortDisplay();
   } catch (error) {
-    console.error("Failed to get window state:", error);
+    console.error("Failed to initialize app:", error);
+  }
+}
+
+// Timer functions
+function startTimer() {
+  if (!isRunning) {
+    isRunning = true;
+    startTime = Date.now();
+    startStopBtn.classList.add("running");
+    startStopBtn.querySelector(".btn-icon").textContent = "⏸️";
+    
+    timerInterval = setInterval(() => {
+      updateTimerDisplay();
+    }, 1000);
+  }
+}
+
+function stopTimer() {
+  if (isRunning) {
+    isRunning = false;
+    const sessionTime = Math.floor((Date.now() - startTime) / 1000);
+    currentSessionTime += sessionTime;
+    todayTime += sessionTime;
+    todaySessions++;
+    totalTime += sessionTime;
+    
+    startStopBtn.classList.remove("running");
+    startStopBtn.querySelector(".btn-icon").textContent = "▶️";
+    
+    clearInterval(timerInterval);
+    timerInterval = null;
+    
+    // Save data
+    saveTimerData();
+    
+    // Update displays
+    updateStatsDisplay();
+    updateTotalTimeShortDisplay();
+  }
+}
+
+function updateTimerDisplay() {
+  if (isRunning) {
+    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+    const totalSeconds = currentSessionTime + elapsed;
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    currentTimerDisplay.textContent = `${hours
+      .toString()
+      .padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds
+      .toString()
+      .padStart(2, "0")}`;
+  } else {
+    const hours = Math.floor(currentSessionTime / 3600);
+    const minutes = Math.floor((currentSessionTime % 3600) / 60);
+    const seconds = currentSessionTime % 60;
+
+    currentTimerDisplay.textContent = `${hours
+      .toString()
+      .padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds
+      .toString()
+      .padStart(2, "0")}`;
+  }
+}
+
+function updateStatsDisplay() {
+  todaySessionsDisplay.textContent = todaySessions;
+
+  const hours = Math.floor(todayTime / 3600);
+  const minutes = Math.floor((todayTime % 3600) / 60);
+
+  todayTimeDisplay.textContent = `${hours.toString().padStart(2, "0")}:${minutes
+    .toString()
+    .padStart(2, "0")}`;
+}
+
+function updateTotalTimeShortDisplay() {
+  const days = Math.floor(totalTime / 86400);
+  const hours = Math.floor((totalTime % 86400) / 3600);
+
+  totalTimeShortDisplay.textContent = `${days}d ${hours}h`;
+}
+
+// Data persistence
+function saveTimerData() {
+  const data = {
+    totalTime,
+    lastSaveDate: new Date().toISOString().split("T")[0],
+  };
+
+  try {
+    fs.writeFileSync(dataPath, JSON.stringify(data, null, 2));
+  } catch (error) {
+    console.error("Failed to save timer data:", error);
+  }
+}
+
+function loadTimerData() {
+  try {
+    if (fs.existsSync(dataPath)) {
+      const data = JSON.parse(fs.readFileSync(dataPath, "utf8"));
+      totalTime = data.totalTime || 0;
+
+      // Check if it's a new day
+      const today = new Date().toISOString().split("T")[0];
+      if (data.lastSaveDate !== today) {
+        // Reset daily stats for new day
+        todaySessions = 0;
+        todayTime = 0;
+        currentSessionTime = 0;
+      }
+    }
+  } catch (error) {
+    console.error("Failed to load timer data:", error);
   }
 }
 
@@ -45,6 +186,11 @@ minimizeBtn.addEventListener("click", async () => {
 
 closeBtn.addEventListener("click", async () => {
   try {
+    // Save data before closing
+    if (isRunning) {
+      stopTimer();
+    }
+    saveTimerData();
     await ipcRenderer.invoke("close-window");
   } catch (error) {
     console.error("Failed to close window:", error);
@@ -58,6 +204,14 @@ alwaysOnTopBtn.addEventListener("click", async () => {
     updateAlwaysOnTopButton();
   } catch (error) {
     console.error("Failed to toggle always on top:", error);
+  }
+});
+
+startStopBtn.addEventListener("click", () => {
+  if (isRunning) {
+    stopTimer();
+  } else {
+    startTimer();
   }
 });
 
@@ -81,10 +235,7 @@ toggleTransparentZoneBtn.addEventListener("click", () => {
 
 // Update functions
 function updateAlwaysOnTopStatus() {
-  alwaysOnTopStatusSpan.textContent = isAlwaysOnTop ? "On" : "Off";
-  alwaysOnTopStatusSpan.style.color = isAlwaysOnTop
-    ? "rgba(76, 175, 80, 0.9)"
-    : "rgba(255, 255, 255, 0.95)";
+  // This function is kept for compatibility but not used in new UI
 }
 
 function updateAlwaysOnTopButton() {
@@ -94,55 +245,40 @@ function updateAlwaysOnTopButton() {
 }
 
 function updateWindowState(state) {
-  if (state.isMinimized) {
-    windowStateSpan.textContent = "Minimized";
-    windowStateSpan.style.color = "rgba(255, 193, 7, 0.9)";
-  } else if (state.isMaximized) {
-    windowStateSpan.textContent = "Maximized";
-    windowStateSpan.style.color = "rgba(33, 150, 243, 0.9)";
-  } else {
-    windowStateSpan.textContent = "Normal";
-    windowStateSpan.style.color = "rgba(255, 255, 255, 0.95)";
-  }
+  // This function is kept for compatibility but not used in new UI
 }
 
 function updateBlurEffect() {
-  // Remove all blur classes
   appContainer.classList.remove("blur-light", "blur-heavy", "blur-off");
 
-  // Add appropriate blur class
   switch (blurLevel) {
-    case 0: // Normal
-      // No additional class needed, uses default CSS
+    case 0:
       break;
-    case 1: // Light
+    case 1:
       appContainer.classList.add("blur-light");
       break;
-    case 2: // Heavy
+    case 2:
       appContainer.classList.add("blur-heavy");
       break;
-    case 3: // Off
+    case 3:
       appContainer.classList.add("blur-off");
       break;
   }
 }
 
 function updateOpacityEffect() {
-  // Remove all opacity classes
   appContainer.classList.remove("opacity-50", "opacity-75", "opacity-100");
 
-  // Add appropriate opacity class
   switch (opacityLevel) {
-    case 0: // Normal
-      // No additional class needed, uses default CSS
+    case 0:
       break;
-    case 1: // 50%
+    case 1:
       appContainer.classList.add("opacity-50");
       break;
-    case 2: // 75%
+    case 2:
       appContainer.classList.add("opacity-75");
       break;
-    case 3: // 100%
+    case 3:
       appContainer.classList.add("opacity-100");
       break;
   }
@@ -184,20 +320,10 @@ function updateTransparentZoneButtonText() {
 
 // Add some interactive effects
 document.addEventListener("DOMContentLoaded", () => {
-  // Add hover effects to feature items
-  const featureItems = document.querySelectorAll(".feature-item");
-  featureItems.forEach((item) => {
-    item.addEventListener("mouseenter", () => {
-      item.style.transform = "translateY(-4px) scale(1.02)";
-    });
-
-    item.addEventListener("mouseleave", () => {
-      item.style.transform = "translateY(0) scale(1)";
-    });
-  });
-
   // Add click ripple effect to buttons
-  const buttons = document.querySelectorAll(".action-btn, .control-btn");
+  const buttons = document.querySelectorAll(
+    ".action-btn, .control-btn, .timer-btn"
+  );
   buttons.forEach((button) => {
     button.addEventListener("click", function (e) {
       const ripple = document.createElement("span");
@@ -239,7 +365,7 @@ rippleStyle.textContent = `
         }
     }
     
-    .action-btn, .control-btn {
+    .action-btn, .control-btn, .timer-btn {
         position: relative;
         overflow: hidden;
     }
@@ -255,6 +381,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Add keyboard shortcuts
 document.addEventListener("keydown", (e) => {
+  // Space to start/stop timer
+  if (e.key === " ") {
+    e.preventDefault();
+    startStopBtn.click();
+  }
+
   // Ctrl/Cmd + Q to quit
   if ((e.ctrlKey || e.metaKey) && e.key === "q") {
     ipcRenderer.invoke("close-window");
@@ -270,9 +402,8 @@ document.addEventListener("keydown", (e) => {
     alwaysOnTopBtn.click();
   }
 
-  // Space to toggle blur
-  if (e.key === " ") {
-    e.preventDefault();
+  // B to toggle blur
+  if (e.key === "b") {
     toggleBlurBtn.click();
   }
 
@@ -281,8 +412,8 @@ document.addEventListener("keydown", (e) => {
     changeOpacityBtn.click();
   }
 
-  // T to toggle transparent zone
-  if (e.key === "t") {
+  // Z to toggle transparent zone
+  if (e.key === "z") {
     toggleTransparentZoneBtn.click();
   }
 });
@@ -296,18 +427,24 @@ window.addEventListener("blur", () => {
   appContainer.style.opacity = "0.8";
 });
 
-// Add smooth animations for state changes
-function animateStateChange(element, newState) {
-  element.style.transition = "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)";
-  element.style.transform = "scale(0.95)";
+// Save data periodically and on page unload
+setInterval(() => {
+  if (isRunning || totalTime > 0) {
+    saveTimerData();
+  }
+}, 30000); // Save every 30 seconds
 
-  setTimeout(() => {
-    element.style.transform = "scale(1)";
-  }, 150);
-}
+window.addEventListener("beforeunload", () => {
+  if (isRunning) {
+    stopTimer();
+  }
+  saveTimerData();
+});
 
 // Export functions for potential external use
 window.electronApp = {
+  startTimer: () => startTimer(),
+  stopTimer: () => stopTimer(),
   toggleBlur: () => toggleBlurBtn.click(),
   changeOpacity: () => changeOpacityBtn.click(),
   toggleTransparentZone: () => toggleTransparentZoneBtn.click(),
