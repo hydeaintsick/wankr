@@ -9,7 +9,12 @@
     "build": "electron-builder",
     "dist": "electron-builder --publish=never"
   },
-  "keywords": ["electron", "transparent", "blur", "boilerplate"],
+  "keywords": [
+    "electron",
+    "transparent",
+    "blur",
+    "boilerplate"
+  ],
   "author": "Your Name",
   "license": "MIT",
   "devDependencies": {

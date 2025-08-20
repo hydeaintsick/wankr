@@ -88,6 +88,32 @@ ipcMain.handle("get-window-state", () => {
   return null;
 });
 
+// Mouse movement simulation with simple key presses
+ipcMain.handle("simulate-activity", () => {
+  try {
+    // Alternative: simulate scroll or key press activity
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.sendInputEvent({
+        type: "keyDown",
+        keyCode: "Shift",
+      });
+
+      setTimeout(() => {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.webContents.sendInputEvent({
+            type: "keyUp",
+            keyCode: "Shift",
+          });
+        }
+      }, 50);
+    }
+    return true;
+  } catch (error) {
+    console.error("Error simulating activity:", error);
+    return false;
+  }
+});
+
 // App event handlers
 app.whenReady().then(createWindow);
 

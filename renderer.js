@@ -33,9 +33,38 @@ let todaySessions = 0;
 let todayTime = 0;
 let totalTime = 0;
 let timerInterval = null;
+let mouseInterval = null;
 
 // Data file path
 const dataPath = path.join(__dirname, "timer-data.json");
+
+// Activity simulation functions
+function startActivitySimulation() {
+  console.log("startActivitySimulation called");
+  if (mouseInterval) {
+    clearInterval(mouseInterval);
+  }
+
+  mouseInterval = setInterval(async () => {
+    if (isRunning) {
+      console.log("Simulating activity...");
+      try {
+        await ipcRenderer.invoke("simulate-activity");
+        console.log("Activity simulated successfully");
+      } catch (error) {
+        console.error("Error simulating activity:", error);
+      }
+    }
+  }, 30000); // Every 30 seconds
+  console.log("Activity simulation interval set");
+}
+
+function stopActivitySimulation() {
+  if (mouseInterval) {
+    clearInterval(mouseInterval);
+    mouseInterval = null;
+  }
+}
 
 // Initialize the app
 async function initializeApp() {
@@ -61,15 +90,28 @@ async function initializeApp() {
 
 // Timer functions
 function startTimer() {
+  console.log("startTimer called");
   if (!isRunning) {
+    console.log("Timer not running, starting...");
     isRunning = true;
     startTime = Date.now();
     startStopBtn.classList.add("running");
     startStopBtn.querySelector(".btn-icon").textContent = "⏸️";
-    
+
     timerInterval = setInterval(() => {
       updateTimerDisplay();
     }, 1000);
+
+    // Start activity simulation for fake activity
+    console.log("Starting activity simulation...");
+    try {
+      startActivitySimulation();
+      console.log("Activity simulation started successfully");
+    } catch (error) {
+      console.error("Error starting activity simulation:", error);
+    }
+  } else {
+    console.log("Timer already running");
   }
 }
 
@@ -81,16 +123,19 @@ function stopTimer() {
     todayTime += sessionTime;
     todaySessions++;
     totalTime += sessionTime;
-    
+
     startStopBtn.classList.remove("running");
     startStopBtn.querySelector(".btn-icon").textContent = "▶️";
-    
+
     clearInterval(timerInterval);
     timerInterval = null;
-    
+
+    // Stop activity simulation
+    stopActivitySimulation();
+
     // Save data
     saveTimerData();
-    
+
     // Update displays
     updateStatsDisplay();
     updateTotalTimeShortDisplay();
@@ -190,6 +235,7 @@ closeBtn.addEventListener("click", async () => {
     if (isRunning) {
       stopTimer();
     }
+    stopActivitySimulation();
     saveTimerData();
     await ipcRenderer.invoke("close-window");
   } catch (error) {
@@ -208,9 +254,12 @@ alwaysOnTopBtn.addEventListener("click", async () => {
 });
 
 startStopBtn.addEventListener("click", () => {
+  console.log("Button clicked, isRunning:", isRunning);
   if (isRunning) {
+    console.log("Stopping timer...");
     stopTimer();
   } else {
+    console.log("Starting timer...");
     startTimer();
   }
 });
@@ -438,6 +487,7 @@ window.addEventListener("beforeunload", () => {
   if (isRunning) {
     stopTimer();
   }
+  stopActivitySimulation();
   saveTimerData();
 });
 
