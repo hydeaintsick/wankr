@@ -3,11 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Electron Transparent Blur</title>
+    <title>Fkr</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <div class="app-container">
+      <!-- Transparent zone to see desktop -->
+      <div class="transparent-zone"></div>
+
       <!-- Title bar -->
       <div class="title-bar">
         <div class="title-bar-left">
@@ -77,6 +80,9 @@
             </button>
             <button class="action-btn" id="change-opacity-btn">
               Change Opacity
+            </button>
+            <button class="action-btn" id="toggle-transparent-zone-btn">
+              Toggle Transparent Zone
             </button>
           </div>
 

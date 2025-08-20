@@ -6,14 +6,19 @@ const closeBtn = document.getElementById("close-btn");
 const alwaysOnTopBtn = document.getElementById("always-on-top-btn");
 const toggleBlurBtn = document.getElementById("toggle-blur-btn");
 const changeOpacityBtn = document.getElementById("change-opacity-btn");
+const toggleTransparentZoneBtn = document.getElementById(
+  "toggle-transparent-zone-btn"
+);
 const windowStateSpan = document.getElementById("window-state");
 const alwaysOnTopStatusSpan = document.getElementById("always-on-top-status");
 const appContainer = document.querySelector(".app-container");
+const transparentZone = document.querySelector(".transparent-zone");
 
 // State variables
 let blurLevel = 0; // 0: normal, 1: light, 2: heavy, 3: off
 let opacityLevel = 0; // 0: normal, 1: 50%, 2: 75%, 3: 100%
 let isAlwaysOnTop = false;
+let transparentZoneVisible = true;
 
 // Initialize the app
 async function initializeApp() {
@@ -66,6 +71,12 @@ changeOpacityBtn.addEventListener("click", () => {
   opacityLevel = (opacityLevel + 1) % 4;
   updateOpacityEffect();
   updateOpacityButtonText();
+});
+
+toggleTransparentZoneBtn.addEventListener("click", () => {
+  transparentZoneVisible = !transparentZoneVisible;
+  updateTransparentZone();
+  updateTransparentZoneButtonText();
 });
 
 // Update functions
@@ -157,6 +168,20 @@ function updateOpacityButtonText() {
   changeOpacityBtn.textContent = opacityTexts[opacityLevel];
 }
 
+function updateTransparentZone() {
+  if (transparentZoneVisible) {
+    transparentZone.style.display = "block";
+  } else {
+    transparentZone.style.display = "none";
+  }
+}
+
+function updateTransparentZoneButtonText() {
+  toggleTransparentZoneBtn.textContent = transparentZoneVisible
+    ? "Hide Transparent Zone"
+    : "Show Transparent Zone";
+}
+
 // Add some interactive effects
 document.addEventListener("DOMContentLoaded", () => {
   // Add hover effects to feature items
@@ -222,7 +247,11 @@ rippleStyle.textContent = `
 document.head.appendChild(rippleStyle);
 
 // Initialize the app when the DOM is loaded
-document.addEventListener("DOMContentLoaded", initializeApp);
+document.addEventListener("DOMContentLoaded", () => {
+  initializeApp();
+  updateTransparentZone();
+  updateTransparentZoneButtonText();
+});
 
 // Add keyboard shortcuts
 document.addEventListener("keydown", (e) => {
@@ -251,6 +280,11 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "o") {
     changeOpacityBtn.click();
   }
+
+  // T to toggle transparent zone
+  if (e.key === "t") {
+    toggleTransparentZoneBtn.click();
+  }
 });
 
 // Add window focus/blur effects
@@ -276,6 +310,7 @@ function animateStateChange(element, newState) {
 window.electronApp = {
   toggleBlur: () => toggleBlurBtn.click(),
   changeOpacity: () => changeOpacityBtn.click(),
+  toggleTransparentZone: () => toggleTransparentZoneBtn.click(),
   toggleAlwaysOnTop: () => alwaysOnTopBtn.click(),
   minimize: () => minimizeBtn.click(),
   close: () => closeBtn.click(),
