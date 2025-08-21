@@ -1,13 +1,17 @@
 {
   "name": "electron-transparent-blur",
   "version": "1.0.0",
-  "description": "Electron app with transparent blur effect",
+  "description": "WANKR",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
     "dev": "electron . --dev",
     "build": "electron-builder",
-    "dist": "electron-builder --publish=never"
+    "dist": "electron-builder --publish=never",
+    "build:mac": "electron-builder --mac --config.mac.target=dir",
+    "build:win": "electron-builder --win --config.win.target=portable",
+    "build:linux": "electron-builder --linux --config.linux.target=AppImage",
+    "build:all": "npm run build:mac && npm run build:win && npm run build:linux"
   },
   "keywords": [
     "electron",
